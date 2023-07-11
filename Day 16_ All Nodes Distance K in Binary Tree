@@ -1,0 +1,55 @@
+class Solution {
+    TreeNode src;
+    TreeNode target;
+    HashMap<TreeNode, TreeNode> backward;
+    public List<Integer> distanceK(TreeNode root, TreeNode target, int k) {
+        this.backward = new HashMap<>();
+        this.target = target;
+        dfs(root);
+
+        int distance = 0;
+        ArrayList<Integer> list = new ArrayList<>();
+        Queue<TreeNode> queue = new ArrayDeque<>();
+        HashSet<TreeNode> visited = new HashSet<>();
+        queue.add(src);
+        visited.add(src);
+
+        while (!queue.isEmpty()){
+            int size = queue.size();
+            if (distance > k)
+                break;
+            while (size-- > 0){
+                TreeNode node = queue.remove();
+                if (distance == k){
+                    list.add(node.val);
+                }
+
+                if (node.left != null && !visited.contains(node.left)){
+                    queue.add(node.left);
+                    visited.add(node.left);
+                }
+                if (node.right != null && !visited.contains(node.right)){
+                    queue.add(node.right);
+                    visited.add(node.right);
+                }
+                if (backward.containsKey(node) && !visited.contains(backward.get(node))){
+                    queue.add(backward.get(node));
+                    visited.add(backward.get(node));
+                }
+            }
+            distance++;
+        }
+        return list;
+    }
+
+    private void dfs(TreeNode root){
+        if (root == null)
+            return;
+        if (root.val == target.val)
+            src = root;
+        backward.put(root.left, root);
+        backward.put(root.right, root);
+        dfs(root.left);
+        dfs(root.right);
+    }
+}
