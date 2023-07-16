@@ -1,0 +1,79 @@
+class Solution {
+    HashMap<String, Integer> skillMap;
+    Long[][] memo;
+    List<List<String>> people;
+    int n;
+    public int[] smallestSufficientTeam(String[] req_skills, List<List<String>> people) {
+        this.people = people;
+        
+        skillMap = new HashMap<>();
+
+        this.n = req_skills.length;
+
+        for(int i = 0; i < n; i++){
+            skillMap.put(req_skills[i], i);
+        }
+
+        memo = new Long[people.size()][(1 << n)];
+
+        //calculate bitmask dp
+        long peopleMask = dp(0, 0);
+        System.out.println(countBits(peopleMask));
+
+        int[] team = new int[countBits(peopleMask)];
+        int idx = 0;
+        for(int i = 0; i <= 63; i++){
+            if((peopleMask & (1L << i)) != 0){
+                team[idx] = i;
+                idx++;
+            }
+        }
+
+        return team;
+        
+    }
+
+    private Long dp(int idx, int skillMask){
+        if(idx == people.size()){
+            if(skillMask == (1 << n) - 1){
+                return 0L;
+            }
+            return -1L;
+        }
+
+        if(memo[idx][skillMask] == null){
+            //Not select
+            int count1 = Integer.MAX_VALUE;
+            Long peopleMask1 = dp(idx + 1, skillMask);
+            if(peopleMask1 >= 0) count1 = countBits(peopleMask1);
+
+            //select
+            int newSkillMask = skillMask;
+            for(String skill: people.get(idx)){
+                newSkillMask = newSkillMask | (1 << skillMap.get(skill));
+            }
+            
+            int count2 = Integer.MAX_VALUE;
+            Long peopleMask2 = dp(idx + 1, newSkillMask);
+            if(peopleMask2 >= 0){
+                peopleMask2 = peopleMask2 | (1L << idx);
+                count2 = countBits(peopleMask2);
+            }
+
+            if(count1 < count2) memo[idx][skillMask] = peopleMask1;
+            else memo[idx][skillMask] = peopleMask2;            
+        }
+
+        return memo[idx][skillMask];
+    }
+    
+    private int countBits(long num){
+        long count = 0;
+        while(num > 0){
+            count += (num & 1L);
+            num = num >> 1L;
+        }
+
+        return (int)count;
+    }
+}
